@@ -1,16 +1,24 @@
-"use client"
+'use client'
 
-import dynamic from "next/dynamic"
+import dynamic from "next/dynamic";
+import { useMemo } from "react";
 
 const Page = () => {
-  const Map = dynamic(() => import("./components/Map").then((mod) => mod.Map), { ssr: false })
+  const Map = useMemo(() =>
+    dynamic(() =>
+      import('@/app/components/Map'),
+      {
+        loading: () => <p>ロード中</p>,
+        ssr: false
+      }
+    ),
+    []
+  )
+
   return (
-    <>
-      <div className="px-3">
-        <div className="flex justify-center text-3xl font-semibold text-[rgba(0,164,150,1)] m-5">Leafletアプリ</div>
-        <Map />
-      </div>
-    </>
+    <div className="w-full h-[100vh]">
+      <Map posix={[36.6959, 137.2136]} />
+    </div>
   )
 }
 

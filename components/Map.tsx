@@ -1,14 +1,16 @@
 "use client"
 
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
-import { LatLngExpression, LatLngLiteral, LatLngTuple } from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from "react-leaflet";
+import L, { LatLngExpression, LatLngLiteral, LatLngTuple } from 'leaflet';
 import { useState, useRef } from "react";
-
+import polyline from "@mapbox/polyline";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet-defaulticon-compatibility";
+import { SearchCar } from "@/types/searchCar";
 
 interface MapProps {
+  searchCar: SearchCar | null,
   posix: LatLngExpression | LatLngTuple,
   zoom?: number,
 }
@@ -19,12 +21,19 @@ type ClickableMapProps = {
 };
 
 const defaults = {
-  zoom: 19,
+  zoom: 14,
 }
 
 const MapClickHandler: React.FC<ClickableMapProps> = ({ markers, setMarkers }) => {
   useMapEvents({
     click(e) {
+
+      // dragendイベントからのclickイベントの発火は無視
+      const target = e.originalEvent.target as HTMLElement;
+      if (target.className.includes("leaflet-marker-pane")) {
+        return null;
+      }
+
       const newMarker = e.latlng
       const isDuplicate = markers.some(
         (marker) => marker.lat == newMarker.lat && marker.lng == newMarker.lng
@@ -39,13 +48,13 @@ const MapClickHandler: React.FC<ClickableMapProps> = ({ markers, setMarkers }) =
   return null;
 };
 
-const Map = (Map: MapProps) => {
-  const { zoom = defaults.zoom, posix } = Map;
+export const MakerMap = (Map: MapProps) => {
+  const { searchCar, zoom = defaults.zoom, posix } = Map;
   const [markers, setMarkers] = useState<LatLngLiteral[]>([]);
   const markerRefs = useRef<(L.Marker | null)[]>([]); // マーカーの参照を配列で管理
+  console.log(searchCar)
 
   const removeMaker = (lat: number, lng: number, index: number) => {
-    console.log("removeMaker", lat, lng);
 
     // ポップアップが開いている場合は閉じる
     const markerRef = markerRefs.current[index];
@@ -64,11 +73,6 @@ const Map = (Map: MapProps) => {
 
   const updateMarker = (event: L.DragEndEvent, index: number) => {
 
-    // ドラッグイベントの伝播を停止
-    // これをしないと、マーカーをドラッグしたときにクリックイベントが発火してしまう
-    // なんだけど、ドラッグイベントにはstopPropagation()がないし、originalEventもない
-    // どうしようか悩み中
-    // event.originalEvent.stopPropagation();
     const marker = event.target;
     const newPosition = marker.getLatLng();
     setMarkers((prevMarkers) =>
@@ -96,7 +100,8 @@ const Map = (Map: MapProps) => {
           position={position}
           draggable={true}
           ref={(ref) => {
-            markerRefs.current[index] = ref; // マーカーの参照を保存
+            // マーカーの参照を保存
+            markerRefs.current[index] = ref;
           }}
 
           eventHandlers={{
@@ -123,4 +128,59 @@ const Map = (Map: MapProps) => {
   );
 };
 
-export default Map;
+export const RouteMap = (Map: MapProps) => {
+  const { searchCar, zoom = defaults.zoom, posix } = Map;
+
+  // マーカーの初期値を設定
+  const [markers] = useState<LatLngLiteral[]>(
+    searchCar?.result.route.stops.map((stop) => ({
+      lat: stop.stop.coord.lat,
+      lng: stop.stop.coord.lon,
+    })) || []
+  );
+
+  return (
+    <MapContainer
+      center={posix}
+      zoom={zoom}
+      scrollWheelZoom={false}
+      style={{ height: "100%", width: "100%" }}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      {searchCar?.result.route.sections.map((section, index) => {
+        const decodedPath = polyline.decode(section.shape).map(([lat, lng]) => ({
+          lat,
+          lng,
+        }));
+
+        return (
+          <Polyline
+            key={index}
+            positions={decodedPath}
+            color="blue"
+            weight={4}
+          />
+        );
+      })}
+
+      {markers.map((position, index) => (
+        <Marker
+          key={index}
+          position={position}
+          draggable={false}
+        >
+          <Popup>
+            <div>
+              <p>緯度: {position.lat}</p>
+              <p>経度: {position.lng}</p>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
+  );
+};

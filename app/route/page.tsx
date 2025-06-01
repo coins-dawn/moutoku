@@ -1,28 +1,34 @@
 'use client'
 
-import dynamic from "next/dynamic";
-import { useMemo } from "react";
-import { useSearchCar } from "@/hooks/api"
+import { useStops } from "@/context/StopsContext"
+import { getSearchCar } from "@/hooks/api"
 
-const Page = () => {
-  const RouteMap = useMemo(() =>
-    dynamic(() =>
-      import('@/components/Map').then(mod => mod.RouteMap),
-      {
-        loading: () => <p>ロード中</p>,
-        ssr: false
+const RoutePage = () => {
+  const stops = useStops()
+  console.log("routttttttteeeee", new Date().toISOString())
+  const { loading, error } = getSearchCar({
+    "route-name": "test",
+    "start-time": "10:00",
+    stops: stops.map((stop) => ({
+      name: stop.name,
+      coord: {
+        lat: stop.coord.lat,
+        lon: stop.coord.lng
       }
-    ),
-    []
-  )
+    }))
+  })
 
-  const searchCar = useSearchCar()
+  // if (loading) {
+  //   return <div>Loading...</div>
+  // }
+  // else if (error) {
+  //   return <div>Error: {error}</div>
+  // }
+  // else {
+  //   return null
+  // }
 
-  return (
-    <div className="w-full h-[100vh]">
-      <RouteMap searchCar={searchCar.response} posix={[36.663746, 137.21158200000002]} />
-    </div>
-  )
+  return null
 }
 
-export default Page
+export default RoutePage

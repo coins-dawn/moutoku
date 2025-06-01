@@ -1,27 +1,57 @@
 import { useState, useEffect } from 'react';
-import mockSearchCar from '@/data/mockSearchCar.json'
-import { SearchCar } from '@/types/searchCar'
+import { SearchCarBody } from '@/types/searchCar'
+import { useSearchCarBody, useSetSearchCarBody } from '@/context/SearchCarBodyContext';
+import { useSetSearchCar } from '@/context/SearchCarContext';
 
-export const useSearchCar = () => {
-    const [response, setResponse] = useState<SearchCar | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+const isBodyEqual = (body: SearchCarBody, prevBody: SearchCarBody) => {
+  const isRouteNameEqual = body['route-name'] == prevBody['route-name'];
+  const isStartTimeEqual = body['start-time'] == prevBody['start-time'];
+  const isStopsEqual = JSON.stringify(body.stops) === JSON.stringify(prevBody.stops);
+  return isRouteNameEqual && isStartTimeEqual && isStopsEqual;
+}
 
-    useEffect(() => {
-        const fetchRoutes = async () => {
-            try {
-                // 実際のAPI呼び出しの代わりにモックデータを使用
-                const data = mockSearchCar;
-                setResponse(data);
-            } catch (err) {
-                setError('Failed to load routes');
-            } finally {
-                setLoading(false);
-            }
-        };
 
-        fetchRoutes();
-    }, []);
+export const getSearchCar = (body: SearchCarBody) => {
 
-    return { response, loading, error };
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<any | null>(null);
+  const prevBody = useSearchCarBody()
+  const setSearchCarBody = useSetSearchCarBody()
+  const setSearchCar = useSetSearchCar();
+
+  const shouldFetch = !isBodyEqual(body, prevBody);
+
+  console.log(shouldFetch? "fetch fetch fetch!!!" : "no")
+  useEffect(() => {
+    setLoading(true)
+    setError(null)
+
+    const fetchSearchCar = async () => {
+      try {
+        const response = await fetch("https://prometheus-h24i.onrender.com/search/car", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+        const data = await response.json()
+        setSearchCar(data);
+        setSearchCarBody(body)
+
+      }
+      catch (error) {
+        console.log("error", error)
+        setError(error)
+      }
+    }
+
+    if (shouldFetch) {
+      fetchSearchCar()
+    }
+
+    setLoading(false);
+  }, []);
+
+  return { loading, error };
 };

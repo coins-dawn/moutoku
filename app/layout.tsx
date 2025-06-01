@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { StopsProvider } from "@/context/StopsContext";
+import { SearchCarProvider } from "@/context/SearchCarContext";
+import { SearchCarBodyProvider } from "@/context/SearchCarBodyContext";
 
 const geistSans = localFont({
   src: "../fonts/GeistVF.woff",
@@ -20,15 +23,31 @@ export const metadata: Metadata = {
 
 const RootLayout = ({
   children,
-}: Readonly<{
+  map,
+  panel,
+}: {
   children: React.ReactNode;
-}>) => {
+  map: React.ReactNode;
+  panel: React.ReactNode;
+}) => {
   return (
     <html lang="ja">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex`}>
+        <StopsProvider>
+          <SearchCarProvider>
+            <SearchCarBodyProvider>
+              <>
+                {children}
+              </>
+              <div className="basis-80 h-[100vh]">
+                {panel}
+              </div>
+              <div className="grow h-[100vh]">
+                {map}
+              </div>
+            </SearchCarBodyProvider>
+          </SearchCarProvider>
+        </StopsProvider>
       </body>
     </html>
   );

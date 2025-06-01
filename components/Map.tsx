@@ -1,30 +1,23 @@
-"use client"
+'use client'
 
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from "react-leaflet";
-import L, { LatLngExpression, LatLngLiteral, LatLngTuple } from 'leaflet';
-import { useState, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline, ZoomControl } from "react-leaflet";
+import L, { LatLngExpression } from 'leaflet';
+import { useRef } from "react";
 import polyline from "@mapbox/polyline";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet-defaulticon-compatibility";
-import { SearchCar } from "@/types/searchCar";
+import { useSetStops, useStops } from "@/context/StopsContext";
+import { usePathname } from "next/navigation";
+import { useSearchCar } from "@/context/SearchCarContext";
 
-interface MapProps {
-  searchCar: SearchCar | null,
-  posix: LatLngExpression | LatLngTuple,
-  zoom?: number,
-}
+const posix: LatLngExpression = [36.663746, 137.21158200000002]
+const zoom = 14
+const minZoom = 10
 
-type ClickableMapProps = {
-  markers: LatLngLiteral[];
-  setMarkers: React.Dispatch<React.SetStateAction<LatLngLiteral[]>>;
-};
-
-const defaults = {
-  zoom: 14,
-}
-
-const MapClickHandler: React.FC<ClickableMapProps> = ({ markers, setMarkers }) => {
+const MapClickHandler = () => {
+  const stops = useStops();
+  const setStops = useSetStops();
   useMapEvents({
     click(e) {
 
@@ -35,12 +28,12 @@ const MapClickHandler: React.FC<ClickableMapProps> = ({ markers, setMarkers }) =
       }
 
       const newMarker = e.latlng
-      const isDuplicate = markers.some(
-        (marker) => marker.lat == newMarker.lat && marker.lng == newMarker.lng
+      const isDuplicate = stops.some(
+        (stop) => stop.coord.lat == newMarker.lat && stop.coord.lng == newMarker.lng
       );
 
       if (!isDuplicate) {
-        setMarkers([...markers, e.latlng]);
+        setStops([...stops, { name: "", coord: { lat: newMarker.lat, lng: newMarker.lng } }]);
       }
     },
   });
@@ -48,11 +41,45 @@ const MapClickHandler: React.FC<ClickableMapProps> = ({ markers, setMarkers }) =
   return null;
 };
 
-export const MakerMap = (Map: MapProps) => {
-  const { searchCar, zoom = defaults.zoom, posix } = Map;
-  const [markers, setMarkers] = useState<LatLngLiteral[]>([]);
+export const CustomMap = () => {
+  const path = usePathname();
+
+  const showMarker = ["/", "/route"].includes(path)
+  const showPreview = ["/"].includes(path)
+  const showRoute = ["/route"].includes(path)
+  const editable = ["/"].includes(path)
+
+  return (
+    <MapContainer
+      center={posix}
+      zoom={zoom}
+      scrollWheelZoom={false}
+      style={{ height: "100%", width: "100%" }}
+      zoomControl={false}
+      minZoom={minZoom}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <ZoomControl
+        position="topright"
+      />
+      {showMarker && <MarkerMap editable={editable} />}
+      {showPreview && <PreviewMap />}
+      {showRoute && <RouteMap />}
+    </MapContainer>
+  )
+}
+
+export const MarkerMap = ({
+  editable
+}: {
+  editable: boolean
+}) => {
+  const stops = useStops();
+  const setStops = useSetStops();
   const markerRefs = useRef<(L.Marker | null)[]>([]); // マーカーの参照を配列で管理
-  console.log(searchCar)
 
   const removeMaker = (lat: number, lng: number, index: number) => {
 
@@ -63,8 +90,8 @@ export const MakerMap = (Map: MapProps) => {
     }
 
     // マーカーを削除
-    setMarkers((prevMarkers) =>
-      prevMarkers.filter((marker) => marker.lat !== lat || marker.lng !== lng)
+    setStops((prevStops) =>
+      prevStops.filter((stop) => stop.coord.lat !== lat || stop.coord.lng !== lng)
     );
 
     // マーカー参照を削除
@@ -72,33 +99,23 @@ export const MakerMap = (Map: MapProps) => {
   };
 
   const updateMarker = (event: L.DragEndEvent, index: number) => {
-
     const marker = event.target;
     const newPosition = marker.getLatLng();
-    setMarkers((prevMarkers) =>
-      prevMarkers.map((marker, i) =>
-        i === index ? { lat: newPosition.lat, lng: newPosition.lng } : marker
+    setStops((prevStops) =>
+      prevStops.map((stop, i) =>
+        i === index ? { ...stop, coord: { lat: newPosition.lat, lng: newPosition.lng } } : stop
       )
     );
   };
 
-  return (
-    <MapContainer
-      center={posix}
-      zoom={zoom}
-      scrollWheelZoom={false}
-      style={{ height: "100%", width: "100%" }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MapClickHandler markers={markers} setMarkers={setMarkers} />
-      {markers.map((position, index) => (
+  return (<>
+    {editable && <MapClickHandler />}
+    {
+      stops.map((stop, index) => (
         <Marker
           key={index}
-          position={position}
-          draggable={true}
+          position={stop.coord}
+          draggable={editable}
           ref={(ref) => {
             // マーカーの参照を保存
             markerRefs.current[index] = ref;
@@ -110,12 +127,12 @@ export const MakerMap = (Map: MapProps) => {
         >
           <Popup>
             <div>
-              <p>緯度: {position.lat}</p>
-              <p>経度: {position.lng}</p>
+              <p>緯度: {stop.coord.lat}</p>
+              <p>経度: {stop.coord.lng}</p>
               <button
                 onClick={(event) => {
                   event.stopPropagation();
-                  removeMaker(position.lat, position.lng, index);
+                  removeMaker(stop.coord.lat, stop.coord.lng, index);
                 }}
               >
                 このマーカーを削除
@@ -123,64 +140,39 @@ export const MakerMap = (Map: MapProps) => {
             </div>
           </Popup>
         </Marker>
-      ))}
-    </MapContainer>
-  );
+      ))
+    }
+  </>);
 };
 
-export const RouteMap = (Map: MapProps) => {
-  const { searchCar, zoom = defaults.zoom, posix } = Map;
+export const PreviewMap = () => {
+  const stops = useStops();
 
-  // マーカーの初期値を設定
-  const [markers] = useState<LatLngLiteral[]>(
-    searchCar?.result.route.stops.map((stop) => ({
-      lat: stop.stop.coord.lat,
-      lng: stop.stop.coord.lon,
-    })) || []
-  );
+  // 最初の地点を最後に追加
+  const positions = [...stops, stops[0]].map(stop => [stop.coord.lat, stop.coord.lng] as LatLngExpression);
 
   return (
-    <MapContainer
-      center={posix}
-      zoom={zoom}
-      scrollWheelZoom={false}
-      style={{ height: "100%", width: "100%" }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-
-      {searchCar?.result.route.sections.map((section, index) => {
-        const decodedPath = polyline.decode(section.shape).map(([lat, lng]) => ({
-          lat,
-          lng,
-        }));
-
-        return (
-          <Polyline
-            key={index}
-            positions={decodedPath}
-            color="blue"
-            weight={4}
-          />
-        );
-      })}
-
-      {markers.map((position, index) => (
-        <Marker
-          key={index}
-          position={position}
-          draggable={false}
-        >
-          <Popup>
-            <div>
-              <p>緯度: {position.lat}</p>
-              <p>経度: {position.lng}</p>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
-  );
+    <Polyline
+      positions={positions}
+      color="blue"
+      weight={4}
+    />
+  )
 };
+
+export const RouteMap = () => {
+  const searchCar = useSearchCar()
+
+  const positions = searchCar.result?.route.sections.map((section) => {
+    const decoded = polyline.decode(section.shape);
+    return decoded;
+  }) ?? [];
+
+  return (
+    <Polyline
+      positions={positions}
+      color="blue"
+      weight={4}
+    />
+  );
+}

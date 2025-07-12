@@ -1,14 +1,12 @@
-'use client'
 
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline, ZoomControl } from "react-leaflet";
 import L, { LatLngExpression } from 'leaflet';
-import { useRef } from "react";
+import { ReactNode, useRef } from "react";
 import polyline from "@mapbox/polyline";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet-defaulticon-compatibility";
 import { useSetStops, useStops } from "@/context/StopsContext";
-import { usePathname } from "next/navigation";
 import { useSearchCar } from "@/context/SearchCarContext";
 
 const posix: LatLngExpression = [36.663746, 137.21158200000002]
@@ -41,13 +39,11 @@ const MapClickHandler = () => {
   return null;
 };
 
-export const CustomMap = () => {
-  const path = usePathname();
-
-  const showMarker = ["/", "/route"].includes(path)
-  const showPreview = ["/"].includes(path)
-  const showRoute = ["/route"].includes(path)
-  const editable = ["/"].includes(path)
+export const CustomMap = ({
+  children
+}: {
+  children: ReactNode
+}) => {
 
   return (
     <MapContainer
@@ -65,9 +61,7 @@ export const CustomMap = () => {
       <ZoomControl
         position="topright"
       />
-      {showMarker && <MarkerMap editable={editable} />}
-      {showPreview && <PreviewMap />}
-      {showRoute && <RouteMap />}
+      {children}
     </MapContainer>
   )
 }

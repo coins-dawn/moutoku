@@ -11,7 +11,7 @@ export const SearchCarProvider = ({
 }: {
   children: React.ReactNode
 }) => {
-  const [searchCar, setSearchCar] = useState<SearchCar | {}>({})
+  const [searchCar, setSearchCar] = useState<SearchCar>({})
 
   return (
     <SearchCarContext value={searchCar}>

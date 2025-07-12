@@ -1,6 +1,6 @@
 'use client'
 
-import { useGetInitialStops } from "@/hooks/data";
+import { useGetInitialStops } from "@/data/getInitialStops";
 import { Stop } from "@/types/stops";
 import { createContext, useContext, useState } from "react";
 

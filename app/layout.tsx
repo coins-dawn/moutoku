@@ -39,7 +39,7 @@ const RootLayout = ({
               <>
                 {children}
               </>
-              <div className="basis-80 h-[100vh]">
+              <div className="basis-80 h-[100vh] relative">
                 {panel}
               </div>
               <div className="grow h-[100vh]">

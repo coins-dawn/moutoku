@@ -2,9 +2,10 @@
 
 import { useStops } from "@/context/StopsContext";
 import { usePathname, useRouter } from "next/navigation";
-import { OneButton, TwoButtons } from "@/components/Panel";
+import { OneButton, TwoButtons } from "@/components/Button";
 import { getSearchCar } from "@/functions/fetchData";
 import { useSearchCar, useSetSearchCar } from "@/context/SearchCarContext";
+import { Stops } from "@/components/Panel";
 
 const PanelPage = () => {
   const path = usePathname()
@@ -15,6 +16,7 @@ const PanelPage = () => {
 
   const showConcirmBusStop = ["/"].includes(path)
   const showBackRoot = ["/route"].includes(path)
+  const dragDisabled = ["/route"].includes(path)
 
   const handleClickConfirmBS = async () => {
     const body = {
@@ -44,12 +46,13 @@ const PanelPage = () => {
   }
 
   return (<>
+    <Stops dragDisabled={dragDisabled} />
     {showConcirmBusStop && <OneButton
       handleClick={handleClickConfirmBS}
       text="バス経路確定" />}
     {showBackRoot && <TwoButtons
       handleClickBack={handleClickBackRoot}
-      textPrevious="戻る"
+      textBack="バス停を見直す"
       handleClickForward={handleClickStartSimulation}
       textForward="経路探索開始" />}
   </>)

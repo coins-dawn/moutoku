@@ -10,7 +10,7 @@ import { useSetStops, useStops } from "@/context/StopsContext";
 import { useSearchCar } from "@/context/SearchCarContext";
 
 const posix: LatLngExpression = [36.663746, 137.21158200000002]
-const zoom = 14
+const zoom = 13
 const minZoom = 10
 
 const MapClickHandler = () => {
@@ -31,7 +31,7 @@ const MapClickHandler = () => {
       );
 
       if (!isDuplicate) {
-        setStops([...stops, { name: "", coord: { lat: newMarker.lat, lng: newMarker.lng } }]);
+        setStops([...stops, { name: `バス停${stops.length + 1}`, coord: { lat: newMarker.lat, lng: newMarker.lng } }]);
       }
     },
   });
@@ -121,16 +121,17 @@ export const MarkerMap = ({
         >
           <Popup>
             <div>
+              <p>{stop.name}</p>
               <p>緯度: {stop.coord.lat}</p>
               <p>経度: {stop.coord.lng}</p>
-              <button
+              {editable && <button
                 onClick={(event) => {
                   event.stopPropagation();
                   removeMaker(stop.coord.lat, stop.coord.lng, index);
                 }}
               >
                 このマーカーを削除
-              </button>
+              </button>}
             </div>
           </Popup>
         </Marker>

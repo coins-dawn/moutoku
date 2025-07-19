@@ -1,41 +1,91 @@
-export const OneButton = ({
-  handleClick,
-  text
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import React from 'react';
+import { CSS } from '@dnd-kit/utilities';
+import { coordToId } from '@/utils/convert';
+import { useSetStops, useStops } from '@/context/StopsContext';
+
+export const Stops = ({
+  dragDisabled
 }: {
-  handleClick: React.MouseEventHandler,
-  text: string
+  dragDisabled: boolean
 }) => {
+  const stops = useStops()
+  const setStops = useSetStops()
+  const items = stops.map(stop => ({ ...stop, id: coordToId(stop.coord) }))
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = items.findIndex(item => item.id == active.id);
+      const newIndex = items.findIndex(item => item.id == over?.id);
+      setStops(arrayMove(items, oldIndex, newIndex));
+    }
+  }
+
+  console.log(stops)
   return (
-    <div className="flex justify-center absolute bottom-4 w-full">
-      <button
-        className="bg-sky-600 rounded-lg text-white p-2"
-        onClick={handleClick}
-      >{text}</button>
-    </div>
-  )
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={items}
+        strategy={verticalListSortingStrategy}
+      >
+        {items.map((item) => <SortableItem key={item.id} id={item.id} name={item.name} dragDisabled={dragDisabled} />)}
+      </SortableContext>
+    </DndContext>
+  );
 }
 
-export const TwoButtons = ({
-  handleClickBack,
-  handleClickForward,
-  textPrevious,
-  textForward
+const SortableItem = ({
+  name,
+  id,
+  dragDisabled
 }: {
-  handleClickBack: React.MouseEventHandler,
-  handleClickForward: React.MouseEventHandler
-  textPrevious: string,
-  textForward: string
+  name: string,
+  id: string,
+  dragDisabled: boolean
 }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: id, disabled: dragDisabled });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   return (
-    <div className="flex justify-between absolute bottom-4 w-full px-4">
-      <button
-        className="bg-gray-400 rounded-lg text-white p-2"
-        onClick={handleClickBack}
-      >{textPrevious}</button>
-      <button
-        className="bg-sky-600 rounded-lg text-white p-2"
-        onClick={handleClickForward}
-      >{textForward}</button>
+    <div ref={setNodeRef} style={style} className="border border-solid border-black justify-between flex-row flex p-2 m-2">
+      <span>{name}</span>
+      {!dragDisabled && <span {...attributes} {...listeners} className="cursor-grab">⠿</span>}
     </div>
-  )
+  );
 }

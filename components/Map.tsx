@@ -272,7 +272,7 @@ export const SearchMarkers = ({
     // editable: boolean
   }) => {
   const searchPtrans = useSearchPtrans();
-  const stops = searchPtrans.result?.route.spots.map(spot => ({ ...spot, coord: { lat: spot.coord.lat, lng: spot.coord.lon } }))
+  const stops = searchPtrans.result.route.spots.map(spot => ({ ...spot, coord: { lat: spot.coord.lat, lng: spot.coord.lon } }))
   // const setStops = useSetStops();
   // const markerRefs = useRef<(L.Marker | null)[]>([]); // マーカーの参照を配列で管理
 

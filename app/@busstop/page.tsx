@@ -2,10 +2,10 @@
 
 import { useStops } from "@/context/StopsContext";
 import { usePathname, useRouter } from "next/navigation";
-import { OneButton, TwoButtons } from "@/components/Button";
+import { ForwardButton } from "@/components/Button";
 import { getSearchCar } from "@/functions/fetchData";
 import { useSearchCar, useSetSearchCar } from "@/context/SearchCarContext";
-import { Stops } from "@/components/Panel";
+import { Stops } from "@/components/BusstopList";
 
 const PanelPage = () => {
   const path = usePathname()
@@ -14,9 +14,9 @@ const PanelPage = () => {
   const setSearchCar = useSetSearchCar()
   const searchCar = useSearchCar()
 
-  const showConcirmBusStop = ["/"].includes(path)
-  const showBackRoot = ["/route"].includes(path)
-  const dragDisabled = ["/route"].includes(path)
+  const showConfirmBusStop = ["/"].includes(path)
+  const showBackRoot = ["/plan"].includes(path)
+  const dragDisabled = ["/plan", "/search"].includes(path)
 
   const handleClickConfirmBS = async () => {
     const body = {
@@ -34,27 +34,16 @@ const PanelPage = () => {
     if (result) {
       setSearchCar(result)
     }
-    router.push('/route')
-  }
-
-  const handleClickBackRoot = () => {
-    router.push('/')
-  }
-
-  const handleClickStartSimulation = () => {
-
+    router.push('/plan')
   }
 
   return (<>
-    <Stops dragDisabled={dragDisabled} />
-    {showConcirmBusStop && <OneButton
+    <div className="h-[calc(100%-4.5rem)] overflow-y-scroll">
+      <Stops dragDisabled={dragDisabled} />
+    </div>
+    {showConfirmBusStop && <ForwardButton
       handleClick={handleClickConfirmBS}
       text="バス経路確定" />}
-    {showBackRoot && <TwoButtons
-      handleClickBack={handleClickBackRoot}
-      textBack="バス停を見直す"
-      handleClickForward={handleClickStartSimulation}
-      textForward="経路探索開始" />}
   </>)
 }
 

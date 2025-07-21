@@ -43,7 +43,6 @@ export const Stops = ({
     }
   }
 
-  console.log(stops)
   return (
     <DndContext
       sensors={sensors}

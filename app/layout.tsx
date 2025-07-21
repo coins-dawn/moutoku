@@ -3,7 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { StopsProvider } from "@/context/StopsContext";
 import { SearchCarProvider } from "@/context/SearchCarContext";
-import { SearchCarBodyProvider } from "@/context/SearchCarBodyContext";
+import { StartGoalProvider } from "@/context/StartGoalContext";
+import { SearchPtransProvider } from "@/context/SearchPtransContext";
 
 const geistSans = localFont({
   src: "../fonts/GeistVF.woff",
@@ -23,29 +24,32 @@ export const metadata: Metadata = {
 
 const RootLayout = ({
   children,
+  busstop,
+  route,
   map,
-  panel,
 }: {
   children: React.ReactNode;
+  busstop: React.ReactNode;
+  route: React.ReactNode;
   map: React.ReactNode;
-  panel: React.ReactNode;
 }) => {
   return (
     <html lang="ja">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex`}>
         <StopsProvider>
           <SearchCarProvider>
-            <SearchCarBodyProvider>
-              <>
-                {children}
-              </>
-              <div className="basis-80 h-[100vh] relative">
-                {panel}
-              </div>
-              <div className="grow h-[100vh]">
-                {map}
-              </div>
-            </SearchCarBodyProvider>
+            <StartGoalProvider>
+              <SearchPtransProvider>
+                <>{children}</>
+                <div className="basis-80 h-[100vh] relative">
+                  {busstop}
+                </div>
+                <>{route}</>
+                <div className="grow h-[100vh]">
+                  {map}
+                </div>
+              </SearchPtransProvider>
+            </StartGoalProvider>
           </SearchCarProvider>
         </StopsProvider>
       </body>

@@ -1,4 +1,4 @@
-export const OneButton = ({
+export const ForwardButton = ({
   handleClick,
   text
 }: {
@@ -9,6 +9,23 @@ export const OneButton = ({
     <div className="flex justify-center absolute bottom-4 w-full">
       <button
         className="bg-sky-600 rounded-lg text-white p-2"
+        onClick={handleClick}
+      >{text}</button>
+    </div>
+  )
+}
+
+export const BackButton = ({
+  handleClick,
+  text
+}: {
+  handleClick: React.MouseEventHandler,
+  text: string
+}) => {
+  return (
+    <div className="flex justify-center absolute bottom-4 w-full">
+      <button
+        className="bg-gray-400 rounded-lg text-white p-2"
         onClick={handleClick}
       >{text}</button>
     </div>

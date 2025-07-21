@@ -2,11 +2,14 @@ import { Route as SCRoute } from "@/types/searchCar"
 
 export interface SearchPtrans {
   status?: string;
-  result?: {
-    route: Route;
-  };
+  result?: Result;
   message?: string;
 }
+
+export interface Result {
+  route: Route;
+}
+
 
 export interface Route {
   duration: number;
@@ -39,5 +42,5 @@ export interface SearchPtransBody {
   start: Coord;
   goal: Coord;
   "start-time": string;
-  "car-output": SCRoute
+  "car-output": { route: SCRoute }
 }

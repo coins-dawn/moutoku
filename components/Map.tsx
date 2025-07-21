@@ -272,65 +272,18 @@ export const SearchMarkers = ({
     // editable: boolean
   }) => {
   const searchPtrans = useSearchPtrans();
-  const stops = searchPtrans.result.route.spots.map(spot => ({ ...spot, coord: { lat: spot.coord.lat, lng: spot.coord.lon } }))
-  // const setStops = useSetStops();
-  // const markerRefs = useRef<(L.Marker | null)[]>([]); // マーカーの参照を配列で管理
-
-  // const removeMaker = (lat: number, lng: number, index: number) => {
-
-  //   // ポップアップが開いている場合は閉じる
-  //   const markerRef = markerRefs.current[index];
-  //   if (markerRef && markerRef.getPopup()?.isOpen()) {
-  //     markerRef.closePopup();
-  //   }
-
-  //   // マーカーを削除
-  //   setStops((prevStops) =>
-  //     prevStops.filter((stop) => stop.coord.lat !== lat || stop.coord.lng !== lng)
-  //   );
-
-  //   // マーカー参照を削除
-  //   markerRefs.current.splice(index, 1);
-  // };
-
-  // const updateMarker = (event: L.DragEndEvent, index: number) => {
-  //   const marker = event.target;
-  //   const newPosition = marker.getLatLng();
-  //   setStops((prevStops) =>
-  //     prevStops.map((stop, i) =>
-  //       i === index ? { ...stop, coord: { lat: newPosition.lat, lng: newPosition.lng } } : stop
-  //     )
-  //   );
-  // };
+  const stops = searchPtrans.result?.route.spots.map(spot => ({ ...spot, coord: { lat: spot.coord.lat, lng: spot.coord.lon } }))
 
   return (<>
-    {/* {editable && <MapClickHandler />} */}
     {
-      stops.map((stop, index) => (
+      stops?.map((stop, index) => (
         <Marker
           key={index}
           position={stop.coord}
-        // draggable={editable}
-        // ref={(ref) => {
-        //   // マーカーの参照を保存
-        //   markerRefs.current[index] = ref;
-        // }}
-
-        // eventHandlers={{
-        //   dragend: (event) => updateMarker(event, index),
-        // }}
         >
           <Popup>
             <div>
               <p>{stop.name}</p>
-              {/* {editable && <button
-                onClick={(event) => {
-                  event.stopPropagation();
-                  removeMaker(stop.coord.lat, stop.coord.lng, index);
-                }}
-              >
-                このマーカーを削除
-              </button>} */}
             </div>
           </Popup>
         </Marker>

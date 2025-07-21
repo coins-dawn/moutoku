@@ -25,18 +25,19 @@ const RoutePage = () => {
   const handleClickStartSimulation = async () => {
     const start = startGoal.find(({ type }) => type == "start")
     const goal = startGoal.find(({ type }) => type == "goal")
+
     const body = {
       start: {
-        lat: start.coord.lat,
-        lon: start.coord.lng
+        lat: start!.coord.lat,
+        lon: start!.coord.lng
       },
       goal: {
-        lat: goal.coord.lat,
-        lon: goal.coord.lng
+        lat: goal!.coord.lat,
+        lon: goal!.coord.lng
       },
       "start-time": "10:00",
       "car-output": {
-        route: searchCar.result.route
+        route: searchCar.result!.route
       }
     }
     const result = await getSearchPtrans(body, searchPtrans)

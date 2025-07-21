@@ -1,9 +1,11 @@
 export interface SearchCar {
   status?: string;
-  result?: {
-    route: Route;
-  };
+  result?: Result;
   message?: string;
+}
+
+export interface Result {
+  route: Route
 }
 
 export interface Route {
@@ -36,7 +38,7 @@ export interface Coord {
 }
 
 export interface SearchCarBody {
-  "route-name"?: string;
-  "start-time"?: string;
-  stops?: StopDetail[]
+  "route-name": string;
+  "start-time": string;
+  stops: StopDetail[]
 }

@@ -15,7 +15,6 @@ const PanelPage = () => {
   const searchCar = useSearchCar()
 
   const showConfirmBusStop = ["/"].includes(path)
-  const showBackRoot = ["/plan"].includes(path)
   const dragDisabled = ["/plan", "/search"].includes(path)
 
   const handleClickConfirmBS = async () => {

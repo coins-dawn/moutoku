@@ -266,11 +266,7 @@ export const PlanMap = () => {
   </>);
 };
 
-export const SearchMarkers = ({
-  // editable
-}: {
-    // editable: boolean
-  }) => {
+export const SearchMarkers = () => {
   const searchPtrans = useSearchPtrans();
   const stops = searchPtrans.result?.route.spots.map(spot => ({ ...spot, coord: { lat: spot.coord.lat, lng: spot.coord.lon } }))
 

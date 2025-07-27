@@ -7,6 +7,20 @@ import { useStartGoal } from "@/context/StartGoalContext"
 import { getSearchPtrans } from "@/functions/fetchData"
 import { usePathname, useRouter } from "next/navigation"
 
+const getTransportation = (type: string) => {
+  const transportation = transportations.find(t => t.type == type)
+  return transportation ? transportation.name : type
+}
+const transportations = [
+  {
+    type: "bus",
+    name: "バス"
+  },
+  {
+    type: "walk",
+    name: "徒歩"
+  }
+]
 
 const RoutePage = () => {
   const searchCar = useSearchCar()
@@ -70,18 +84,20 @@ const RoutePage = () => {
             const section = searchPtrans.result?.route.sections[index]
             return (
               <div key={index}>
-                <div>
-                  <span>
-                    {prevSection && <span>{prevSection.goal_time}</span>}
-                    <span>{section?.start_time}</span>
-                  </span>
+                <div className="flex flex-row items-center border border-solid border-black p-2">
+                  <div className="flex flex-col basis-20">
+                    {prevSection && <span>{prevSection.goal_time}着</span>}
+                    {section && <span>{section.start_time}発</span>}
+                  </div>
                   <span>{spot.name}</span>
                 </div>
-                {section && <>
-                  <span>↓</span>
-                  <span>{section.type}</span>
-                  <span>{section.duration}分</span>
-                </>}
+                {section &&
+                  <div className="pl-4 my-2">
+                    <span></span>
+                    <span>{getTransportation(section.type)}</span>
+                    <span>{section.duration}分</span>
+                  </div>
+                }
               </div>
             )
           })}

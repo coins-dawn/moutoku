@@ -8,21 +8,10 @@ export const getSearchCar = async (body: SearchCarBody, searchCar: SearchCar) =>
     return null
   }
   else {
-    const result = await postSearchCar(body)
+    const result = await postRequest("https://prometheus-h24i.onrender.com/search/car", body)
     sessionStorage.setItem('searchCarBody', currentBody)
     return result
   }
-}
-
-const postSearchCar = async (body: SearchCarBody) => {
-  const response = await fetch("https://prometheus-h24i.onrender.com/search/car", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  })
-  return response.json()
 }
 
 export const getSearchPtrans = async (body: SearchPtransBody, searchPtrans: SearchPtrans) => {
@@ -32,19 +21,26 @@ export const getSearchPtrans = async (body: SearchPtransBody, searchPtrans: Sear
     return null
   }
   else {
-    const result = await postSearchPtrans(body)
+    const result = await postRequest("https://prometheus-h24i.onrender.com/search/ptrans", body)
     sessionStorage.setItem('searchPtransBody', currentBody)
     return result
   }
 }
 
-const postSearchPtrans = async (body: SearchPtransBody) => {
-  const response = await fetch("https://prometheus-h24i.onrender.com/search/ptrans", {
+const postRequest = async (url: string, body: SearchCarBody | SearchPtransBody) => {
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
   })
-  return response.json()
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null)
+    const message = errorData?.message || 'サーバーエラーが発生しました'
+    throw new Error(message)
+  }
+
+  return response.json();
 }

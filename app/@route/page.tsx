@@ -6,6 +6,7 @@ import { useSearchPtrans, useSetSearchPtrans } from "@/context/SearchPtransConte
 import { useStartGoal } from "@/context/StartGoalContext"
 import { getSearchPtrans } from "@/functions/fetchData"
 import { usePathname, useRouter } from "next/navigation"
+import { useState } from "react"
 
 const getTransportation = (type: string) => {
   const transportation = transportations.find(t => t.type == type)
@@ -23,6 +24,8 @@ const transportations = [
 ]
 
 const RoutePage = () => {
+  const [error, setError] = useState(false)
+  const [message, setMessage] = useState("")
   const searchCar = useSearchCar()
   const searchPtrans = useSearchPtrans()
   const setSearchPtrans = useSetSearchPtrans()
@@ -40,25 +43,54 @@ const RoutePage = () => {
     const start = startGoal.find(({ type }) => type == "start")
     const goal = startGoal.find(({ type }) => type == "goal")
 
+    if (!start && !goal) {
+      setError(true)
+      setMessage("出発地点と到着地点を指定してください")
+      return
+    }
+    if (!start) {
+      setError(true)
+      setMessage("出発地点を指定してください")
+      return
+    }
+    if (!goal) {
+      setError(true)
+      setMessage("到着地点を指定してください")
+      return
+    }
+
     const body = {
       start: {
-        lat: start!.coord.lat,
-        lon: start!.coord.lng
+        lat: start.coord.lat,
+        lon: start.coord.lng
       },
       goal: {
-        lat: goal!.coord.lat,
-        lon: goal!.coord.lng
+        lat: goal.coord.lat,
+        lon: goal.coord.lng
       },
       "start-time": "10:00",
       "car-output": {
         route: searchCar.result!.route
       }
     }
-    const result = await getSearchPtrans(body, searchPtrans)
-    if (result) {
-      setSearchPtrans(result)
+    try {
+      const result = await getSearchPtrans(body, searchPtrans)
+      if (result) {
+        setError(false)
+        setMessage("")
+        setSearchPtrans(result)
+      }
+      router.push('/search')
     }
-    router.push('/search')
+    catch (e) {
+      setError(true)
+      if (e instanceof Error) {
+        setMessage(e.message)
+      }
+      else {
+        setMessage("システムエラーが発生しました。お手数おかけしますがやり直してください")
+      }
+    }
   }
 
   return open ? (<>
@@ -67,6 +99,7 @@ const RoutePage = () => {
         <div>出発地</div>
         <div>到着地</div>
         <div>出発時間</div>
+        {error && <div className="text-red-500">{message}</div>}
         <TwoButtons
           handleClickBack={handleClickBackRoot}
           textBack="バス停を見直す"
@@ -74,39 +107,40 @@ const RoutePage = () => {
           textForward="経路探索開始"
         />
       </>}
-      {showBack && <>
-        <div>出発時間{searchPtrans.result?.route.start_time}</div>
-        <div>到着時間{searchPtrans.result?.route.goal_time}</div>
-        <div>所要時間{searchPtrans.result?.route.duration}分</div>
-        <div className="mt-4">
-          {searchPtrans.result?.route.spots.map((spot, index) => {
-            const prevSection = searchPtrans.result?.route.sections[index - 1]
-            const section = searchPtrans.result?.route.sections[index]
-            return (
-              <div key={index}>
-                <div className="flex flex-row items-center border border-solid border-black p-2">
-                  <div className="flex flex-col basis-20">
-                    {prevSection && <span>{prevSection.goal_time}着</span>}
-                    {section && <span>{section.start_time}発</span>}
+      {showBack &&
+        <div className="h-[calc(100%-4rem)] overflow-y-scroll">
+          <div>出発時間{searchPtrans.result?.route.start_time}</div>
+          <div>到着時間{searchPtrans.result?.route.goal_time}</div>
+          <div>所要時間{searchPtrans.result?.route.duration}分</div>
+          <div className="mt-4">
+            {searchPtrans.result?.route.spots.map((spot, index) => {
+              const prevSection = searchPtrans.result?.route.sections[index - 1]
+              const section = searchPtrans.result?.route.sections[index]
+              return (
+                <div key={index}>
+                  <div className="flex flex-row items-center border border-solid border-black p-2">
+                    <div className="flex flex-col basis-20">
+                      {prevSection && <span>{prevSection.goal_time}着</span>}
+                      {section && <span>{section.start_time}発</span>}
+                    </div>
+                    <span>{spot.name}</span>
                   </div>
-                  <span>{spot.name}</span>
+                  {section &&
+                    <div className="pl-4 my-2">
+                      <span></span>
+                      <span>{getTransportation(section.type)}</span>
+                      <span>{section.duration}分</span>
+                    </div>
+                  }
                 </div>
-                {section &&
-                  <div className="pl-4 my-2">
-                    <span></span>
-                    <span>{getTransportation(section.type)}</span>
-                    <span>{section.duration}分</span>
-                  </div>
-                }
-              </div>
-            )
-          })}
-        </div>
-        <BackButton
-          handleClick={() => router.push("/plan")}
-          text="条件を変更する"
-        />
-      </>}
+              )
+            })}
+          </div>
+          <BackButton
+            handleClick={() => router.push("/plan")}
+            text="条件を変更する"
+          />
+        </div>}
     </div>
   </>) : null
 }

@@ -18,6 +18,7 @@ import React from 'react';
 import { CSS } from '@dnd-kit/utilities';
 import { coordToId } from '@/utils/convert';
 import { useSetStops, useStops } from '@/context/StopsContext';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 
 export const Stops = ({
   dragDisabled
@@ -48,6 +49,7 @@ export const Stops = ({
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
+      modifiers={[restrictToVerticalAxis]}
     >
       <SortableContext
         items={items}

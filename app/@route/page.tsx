@@ -1,7 +1,7 @@
 'use client'
 
 import { BackButton, TwoButtons } from "@/components/Button"
-import { useLoading, useSetLoading } from "@/context/LoadingContext"
+import { useSetLoading } from "@/context/LoadingContext"
 import { useSearchCar } from "@/context/SearchCarContext"
 import { useSearchPtrans, useSetSearchPtrans } from "@/context/SearchPtransContext"
 import { useStartGoal } from "@/context/StartGoalContext"

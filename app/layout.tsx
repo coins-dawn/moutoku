@@ -5,6 +5,8 @@ import { StopsProvider } from "@/context/StopsContext";
 import { SearchCarProvider } from "@/context/SearchCarContext";
 import { StartGoalProvider } from "@/context/StartGoalContext";
 import { SearchPtransProvider } from "@/context/SearchPtransContext";
+import { LoadingProvider } from "@/context/LoadingContext";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 const geistSans = localFont({
   src: "../fonts/GeistVF.woff",
@@ -36,22 +38,25 @@ const RootLayout = ({
   return (
     <html lang="ja">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex`}>
-        <StopsProvider>
-          <SearchCarProvider>
-            <StartGoalProvider>
-              <SearchPtransProvider>
-                <>{children}</>
-                <div className="basis-80 h-[100vh] relative">
-                  {busstop}
-                </div>
-                <>{route}</>
-                <div className="grow h-[100vh]">
-                  {map}
-                </div>
-              </SearchPtransProvider>
-            </StartGoalProvider>
-          </SearchCarProvider>
-        </StopsProvider>
+        <LoadingProvider>
+          <StopsProvider>
+            <SearchCarProvider>
+              <StartGoalProvider>
+                <SearchPtransProvider>
+                  <LoadingOverlay />
+                  <>{children}</>
+                  <div className="basis-80 h-[100vh] relative">
+                    {busstop}
+                  </div>
+                  <>{route}</>
+                  <div className="grow h-[100vh]">
+                    {map}
+                  </div>
+                </SearchPtransProvider>
+              </StartGoalProvider>
+            </SearchCarProvider>
+          </StopsProvider>
+        </LoadingProvider>
       </body>
     </html>
   );

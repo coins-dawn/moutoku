@@ -7,6 +7,7 @@ import { getSearchCar } from "@/functions/fetchData";
 import { useSearchCar, useSetSearchCar } from "@/context/SearchCarContext";
 import { Stops } from "@/components/BusstopList";
 import { useState } from "react";
+import { useSetLoading } from "@/context/LoadingContext";
 
 const PanelPage = () => {
   const [error, setError] = useState(false)
@@ -16,11 +17,12 @@ const PanelPage = () => {
   const stops = useStops()
   const setSearchCar = useSetSearchCar()
   const searchCar = useSearchCar()
-
+  const setLoading = useSetLoading()
   const showConfirmBusStop = ["/"].includes(path)
   const dragDisabled = ["/plan", "/search"].includes(path)
 
   const handleClickConfirmBS = async () => {
+    setLoading(true)
     const body = {
       "route-name": "test",
       "start-time": "10:00",
@@ -39,8 +41,8 @@ const PanelPage = () => {
         setMessage("")
         setSearchCar(result)
       }
+      setLoading(false)
       router.push('/plan')
-
     }
     catch (e) {
       setError(true)
@@ -50,13 +52,13 @@ const PanelPage = () => {
       else {
         setMessage("システムエラーが発生しました。お手数おかけしますがやり直してください")
       }
-
+      setLoading(false)
     }
   }
   return (<>
     <div className="h-[calc(100%-4.5rem)] overflow-y-scroll">
       <Stops dragDisabled={dragDisabled} />
-    {error && <div className="text-red-500 p-2">{message}</div>}
+      {error && <div className="text-red-500 p-2">{message}</div>}
     </div>
     {showConfirmBusStop && <ForwardButton
       handleClick={handleClickConfirmBS}

@@ -1,6 +1,7 @@
 'use client'
 
 import { BackButton, TwoButtons } from "@/components/Button"
+import { useLoading, useSetLoading } from "@/context/LoadingContext"
 import { useSearchCar } from "@/context/SearchCarContext"
 import { useSearchPtrans, useSetSearchPtrans } from "@/context/SearchPtransContext"
 import { useStartGoal } from "@/context/StartGoalContext"
@@ -35,6 +36,7 @@ const RoutePage = () => {
   const open = ["/plan", "/search"].includes(path)
   const showSimulation = ["/plan"].includes(path)
   const showBack = ["/search"].includes(path)
+  const setLoading = useSetLoading()
   const handleClickBackRoot = () => {
     router.push('/')
   }
@@ -58,6 +60,7 @@ const RoutePage = () => {
       setMessage("到着地点を指定してください")
       return
     }
+    setLoading(true)
 
     const body = {
       start: {
@@ -80,6 +83,7 @@ const RoutePage = () => {
         setMessage("")
         setSearchPtrans(result)
       }
+      setLoading(false)
       router.push('/search')
     }
     catch (e) {
@@ -90,6 +94,7 @@ const RoutePage = () => {
       else {
         setMessage("システムエラーが発生しました。お手数おかけしますがやり直してください")
       }
+      setLoading(false)
     }
   }
 
